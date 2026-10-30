@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="csrf-token" content="META-CSRF-SHOULD-NOT-APPEAR">
+<title>Acme Ops – Orders</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.5 system-ui, sans-serif; color: #1f2937; background: #f3f4f6; }
+  header { position: sticky; top: 0; display: flex; gap: 16px; align-items: center; padding: 12px 24px; background: #111827; color: #fff; z-index: 5; }
+  header a { color: #93c5fd; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px; }
+  section { margin-bottom: 32px; padding: 16px; background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+  h2 { margin-top: 0; font-size: 18px; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { padding: 6px 10px; border-bottom: 1px solid #e5e7eb; text-align: left; }
+  th { background: #f9fafb; }
+  .status { padding: 2px 8px; border-radius: 999px; font-size: 12px; }
+  .paid { background: #dcfce7; color: #166534; }
+  .late { background: #fee2e2; color: #991b1b; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .kv { display: flex; gap: 24px; }
+  .toolbar { display: flex; gap: 8px; }
+  .scroller { height: 120px; overflow: auto; border: 1px solid #e5e7eb; }
+  .scroller div { padding: 4px 8px; }
+  /* AG-Grid-like data grid: pinned column in its own container */
+  .grid { display: flex; border: 1px solid #d1d5db; font-size: 13px; }
+  .grid .pinned { width: 120px; border-right: 2px solid #d1d5db; }
+  .grid .center { flex: 1; }
+  .grid [role=row] { display: flex; height: 30px; align-items: center; border-bottom: 1px solid #eee; }
+  .grid [role=columnheader] { font-weight: 600; }
+  .grid [role=gridcell], .grid [role=columnheader] { flex: 1; padding: 0 8px; }
+  .fake-check { position: relative; }
+  .fake-check input { opacity: 0; position: absolute; }
+  .fake-check span::before { content: "☐ "; }
+  .tall { height: 1200px; }
+</style>
+</head>
+<body>
+<header>
+  <strong>Acme Ops</strong>
+  <nav class="toolbar">
+    <a href="/orders?page=2&amp;token=SECRET123&amp;sort=date">Orders</a>
+    <a href="https://example.com/reports#access_token=SECRET456&amp;view=q3">Reports</a>
+    <a href="#settings">Settings</a>
+  </nav>
+</header>
+
+<main>
+  <section id="summary">
+    <h2>Summary</h2>
+    <div class="kv"><span>Open orders</span><strong>42</strong></div>
+    <div class="kv"><span>Overdue</span><strong>3</strong></div>
+    <p>Last sync <time datetime="2026-10-30T09:00">today 09:00</time>. <span class="sr-only">Screen reader only note</span></p>
+    <div style="display:none">HIDDEN-DISPLAY-NONE</div>
+    <div style="opacity:0">HIDDEN-OPACITY</div>
+    <div style="visibility:hidden">HIDDEN-VISIBILITY <span style="visibility:visible">VISIBLE-CHILD</span></div>
+    <details><summary>More details</summary>HIDDEN-IN-CLOSED-DETAILS</details>
+  </section>
+
+  <section>
+    <h2>Orders</h2>
+    <table id="orders">
+      <caption>October orders</caption>
+      <thead>
+        <tr><th>Order</th><th>Customer</th><th>Status</th><th>Total</th><th>Shipped</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><a href="/orders/1001">#1001</a></td><td>Jane Cruz</td><td><span class="status paid">Paid</span></td><td>$1,200.00</td><td><input type="checkbox" checked aria-label="Shipped"></td></tr>
+        <tr><td><a href="/orders/1002">#1002</a></td><td>Mark | Lee</td><td><span class="status late">Overdue</span></td><td>$980.50</td><td><input type="checkbox" aria-label="Shipped"></td></tr>
+        <tr><td><a href="/orders/1003">#1003</a></td><td>Ana Reyes</td><td><span class="status paid">Paid</span></td><td>$1,610.00</td><td><input type="checkbox" checked aria-label="Shipped"></td></tr>
+        <tr><td><a href="/orders/1004">#1004</a></td><td>Tom Diaz</td><td><span class="status paid">Paid</span></td><td>$75.25</td><td><input type="checkbox" aria-label="Shipped"></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Quarterly (merged header cells)</h2>
+    <table id="quarterly">
+      <thead>
+        <tr><th rowspan="2">Region</th><th colspan="2">Revenue</th></tr>
+        <tr><th>Q2</th><th>Q3</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>West</td><td>1,450</td><td>1,610</td></tr>
+        <tr><td>East</td><td>1,020</td><td>1,300</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Inventory grid</h2>
+    <!-- Mimics AG Grid: pinned "SKU" column in its own container, rows out of DOM order -->
+    <div id="grid" class="grid" role="grid" aria-rowcount="4" aria-colcount="3">
+      <div class="pinned">
+        <div role="row" aria-rowindex="1"><div role="columnheader" aria-colindex="1">SKU</div></div>
+        <div role="row" aria-rowindex="3"><div role="gridcell" aria-colindex="1">B-200</div></div>
+        <div role="row" aria-rowindex="2"><div role="gridcell" aria-colindex="1">A-100</div></div>
+        <div role="row" aria-rowindex="4"><div role="gridcell" aria-colindex="1">C-300</div></div>
+      </div>
+      <div class="center">
+        <div role="row" aria-rowindex="1"><div role="columnheader" aria-colindex="3">Stock</div><div role="columnheader" aria-colindex="2">Name</div></div>
+        <div role="row" aria-rowindex="2"><div role="gridcell" aria-colindex="2">Widget</div><div role="gridcell" aria-colindex="3">12</div></div>
+        <div role="row" aria-rowindex="4"><div role="gridcell" aria-colindex="2">Doohickey</div><div role="gridcell" aria-colindex="3">0</div></div>
+        <div role="row" aria-rowindex="3"><div role="gridcell" aria-colindex="2">Gadget</div><div role="gridcell" aria-colindex="3">7</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Edit customer</h2>
+    <form id="form" action="/customers/save?session=SECRET789">
+      <input type="hidden" name="csrf_token" value="HIDDEN-CSRF-SHOULD-NOT-APPEAR">
+      <p><label for="email">Email</label> <input id="email" type="email" value="old@acme.com"></p>
+      <p><label for="pw">Password</label> <input id="pw" type="password"></p>
+      <p><input type="search" placeholder="Search customers"></p>
+      <p><label>Plan <select name="plan"><option>Free</option><option selected>Pro</option><option>Enterprise</option></select></label></p>
+      <p><label class="fake-check"><input type="checkbox" id="news" checked><span>Send newsletter</span></label></p>
+      <p><textarea name="notes">VIP customer
+prefers email</textarea></p>
+      <div class="toolbar"><button type="submit">Save</button><button type="button" aria-label="Delete customer">🗑</button></div>
+    </form>
+  </section>
+
+  <section>
+    <h2>Components</h2>
+    <status-card id="open-card"><span slot="label">Server status</span></status-card>
+    <closed-card id="closed-card"></closed-card>
+  </section>
+
+  <section>
+    <h2>Charts</h2>
+    <svg id="chart" width="300" height="120" viewBox="0 0 300 120" role="img" aria-label="Sales by month">
+      <rect x="10" y="40" width="40" height="70" fill="#3b82f6"/><text x="20" y="118">Aug</text><text x="20" y="35">70</text>
+      <rect x="70" y="20" width="40" height="90" fill="#3b82f6"/><text x="80" y="118">Sep</text><text x="80" y="15">90</text>
+    </svg>
+    <svg width="16" height="16" aria-label="Warning"><circle cx="8" cy="8" r="7"/></svg>
+    <canvas id="canvas" width="200" height="80"></canvas>
+  </section>
+
+  <section>
+    <h2>Notes</h2>
+    <ul>
+      <li>First item</li>
+      <li>Second item
+        <ol><li>Nested one</li><li>Nested two</li></ol>
+      </li>
+    </ul>
+    <blockquote>Quoted text</blockquote>
+    <pre><code>function hello() {
+  return 42;
+}</code></pre>
+    <p>Inline <code>code</code> and a <a href="https://example.com/docs?api_key=SECRETKEY&amp;lang=en">docs link</a>.</p>
+  </section>
+
+  <section>
+    <h2>Activity log (scrolls)</h2>
+    <div class="scroller" id="scroller"></div>
+  </section>
+
+  <section>
+    <h2>Embedded</h2>
+    <iframe id="frame" srcdoc="<p>Inside the iframe: <b>hello</b></p>" width="300" height="60"></iframe>
+  </section>
+
+  <div class="tall"></div>
+</main>
+
+<script>
+  document.getElementById('email').value = 'jane@acme.com';      // live value differs from the attribute
+  document.getElementById('pw').value = 'HUNTER2-SHOULD-NOT-APPEAR';
+
+  const log = document.getElementById('scroller');
+  for (let i = 1; i <= 30; i++) log.insertAdjacentHTML('beforeend', `<div>Log entry ${i}</div>`);
+
+  customElements.define('status-card', class extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({ mode: 'open' }).innerHTML =
+        '<style>div{padding:8px;border:1px solid #ccc}</style><div><slot name="label"></slot>: <b>Online</b></div>';
+    }
+  });
+  customElements.define('closed-card', class extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({ mode: 'closed' }).innerHTML = '<p>Closed shadow content: <i>Healthy</i></p>';
+    }
+  });
+
+  const ctx = document.getElementById('canvas').getContext('2d');
+  ctx.fillStyle = '#10b981';
+  ctx.fillRect(10, 20, 60, 50);
+  ctx.fillText('CANVAS-TEXT', 90, 40);
+</script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Webshots",
+  "version": "0.1.0",
+  "description": "Screenshot part of a web page as text or HTML instead of an image, for AI assistants that can't read images.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Capture as text/HTML (Alt+Shift+S)",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["activeTab", "scripting", "storage", "clipboardWrite"],
+  "commands": {
+    "_execute_action": {
+      "suggested_key": { "default": "Alt+Shift+S" },
+      "description": "Start a capture"
+    }
+  },
+  "minimum_chrome_version": "114"
+}
